@@ -11,8 +11,7 @@ public class ProductoMapper {
     public Producto requestAEntidad(ProductoRequest request, Categoria categoria){
         return request == null
                 ? null
-                : Producto.crear(
-                        request.nombre(),
+                : Producto.crear(request.nombre(),
                 categoria,
                 request.precio(),
                 request.cantidad());

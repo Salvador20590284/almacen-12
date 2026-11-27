@@ -48,7 +48,7 @@ public class ProductoController {
             @Parameter(description = "Busqueda por precio minimo", example = "1000")
             @RequestParam(required = false) BigDecimal precioMin,
 
-            @Parameter(description = "Busqueda por precio Maximo", example = "Laptop")
+            @Parameter(description = "Busqueda por precio Maximo", example = "200000")
             @RequestParam(required = false) BigDecimal precioMax
     ) {
         return ResponseEntity.ok(productoService.listar(nombre, categoria, precioMin, precioMax));

@@ -4,6 +4,7 @@ import com.salvador.almacen.dto.productos.ProductoRequest;
 import com.salvador.almacen.dto.productos.ProductoResponse;
 import com.salvador.almacen.entities.Producto;
 import com.salvador.almacen.enums.Categoria;
+import com.salvador.almacen.exceptions.DatoInvalidoException;
 import com.salvador.almacen.exceptions.RecursoNoEncontradoException;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -33,12 +34,38 @@ public class ProductoServiceImpl implements ProductoService{
             String nombre, String categoria,
             BigDecimal precioMin, BigDecimal precioMax) {
 
-        log.info("Listado de los productos... ");
-        return productoRepository.findAll().stream()
-                //.map(p -> productoMapper.entidadResponse(p)).toList()
-                .map(productoMapper::entidadAResponse).toList();
-    }
+        log.info("Listado de los productos con filtros...PUNTO 1 PROYECTO");
+        String nombreFiltro = nombre == null || nombre.isBlank()
+                ? null
+                : nombre.trim();
+        Categoria categoriaFiltro = categoria == null || categoria.isBlank()
+                ? null
+                : Categoria.obtenerCategoriaPorDescripcion(categoria.trim());
 
+        if (precioMin != null &&
+                precioMin.compareTo(BigDecimal.ZERO) < 0)
+            throw new DatoInvalidoException(
+                    "El precio minimo no puede ser negativo");
+
+        if (precioMax != null &&
+                precioMax.compareTo(BigDecimal.ZERO) < 0)
+            throw new DatoInvalidoException(
+                    "El precio maximo no puede ser negativo");
+
+        if (precioMin != null && precioMax != null &&
+                precioMin.compareTo(precioMax) > 0)
+            throw new DatoInvalidoException(
+                    "El precio minimo no puede ser mayor al precio maximo");
+
+        return productoRepository.listarConFiltros(
+                        nombreFiltro,
+                        categoriaFiltro,
+                        precioMin,
+                        precioMax)
+                .stream()
+                .map(productoMapper::entidadAResponse)
+                .toList();
+    }
     @Override
     @Transactional(readOnly = true)
     public ProductoResponse obtenerPorId(Long id) {

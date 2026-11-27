@@ -1,23 +1,21 @@
 package com.salvador.almacen.entities;
 
 import com.salvador.almacen.exceptions.DatoInvalidoException;
-import jakarta.annotation.Nullable;
+import com.salvador.almacen.utils.ValoresNumericosUtils;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 
 @Entity
 @Table(name = "DETALLES_VENTAS")
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
-@Builder
 public class DetalleVenta {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "ID_DETALLE_VENTA")
@@ -38,11 +36,68 @@ public class DetalleVenta {
             scale = 2, nullable = false)
     private BigDecimal precioProducto;
 
+
+    public static void validarDatos(
+            Producto producto, Integer cantidadProducto,
+            BigDecimal precioProducto) {
+
+        if (producto == null)
+            throw new DatoInvalidoException(
+                    "El producto es requerido");
+
+        ValoresNumericosUtils.validarEnteroPositivo(
+                cantidadProducto,
+                "La cantidad del producto debe ser positiva");
+
+        if (precioProducto == null ||
+                precioProducto.compareTo(BigDecimal.ZERO) < 0)
+            throw new DatoInvalidoException(
+                    "El precio es requerido y no puede ser negativo");
+    }
+
+
     public void asignarVenta(Venta venta) {
-        if(venta == null)
-            throw new DatoInvalidoException("La venta es requerida");
+
+        if (venta == null)
+            throw new DatoInvalidoException(
+                    "La venta es requerida");
+
         this.venta = venta;
     }
 
-    //crear, actualizar etc..
+
+    public static DetalleVenta crear(
+            Venta venta, Producto producto,
+            Integer cantidadProducto, BigDecimal precioProducto) {
+
+        validarDatos(producto, cantidadProducto, precioProducto);
+
+        DetalleVenta detalleVenta = new DetalleVenta();
+
+        detalleVenta.asignarVenta(venta);
+        detalleVenta.producto = producto;
+        detalleVenta.cantidadProducto = cantidadProducto;
+        detalleVenta.precioProducto = precioProducto;
+
+        return detalleVenta;
+    }
+
+
+    public void actualizar(
+            Producto producto, Integer cantidadProducto,
+            BigDecimal precioProducto) {
+
+        validarDatos(producto, cantidadProducto, precioProducto);
+
+        this.producto = producto;
+        this.cantidadProducto = cantidadProducto;
+        this.precioProducto = precioProducto;
+    }
+
+
+    public BigDecimal calcularSubtotal() {
+
+        return this.precioProducto.multiply(
+                BigDecimal.valueOf(this.cantidadProducto));
+    }
 }
